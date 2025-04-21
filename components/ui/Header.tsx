@@ -42,13 +42,21 @@ export default function Header() {
                 <Link href="/" className="text-sm font-medium">
                   Inicio
                 </Link>
-                
+                <Link href="/productos" className="text-sm font-medium">
+                  Productos
+                </Link>
+                <Link href="/acerca" className="text-sm font-medium">
+                  Acerca de
+                </Link>
+                <Link href="/contacto" className="text-sm font-medium">
+                  Contacto
+                </Link>
                 <div className="mt-4 border-t pt-4">
                   {isLoggedIn ? (
                     <>
                       <div className="flex items-center gap-2 mb-4">
                         <Avatar className="h-8 w-8">
-
+                          
                           <AvatarFallback>US</AvatarFallback>
                         </Avatar>
                         <div className="text-sm font-medium">Usuario</div>
@@ -64,6 +72,21 @@ export default function Header() {
                     </>
                   ) : (
                     <>
+                      <Button
+                        variant="default"
+                        className="w-full justify-start mb-2"
+                        onClick={() => setIsLoggedIn(true)}
+                      >
+                        <LogIn className="mr-2 h-4 w-4" />
+                        Iniciar sesión
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start"
+                      >
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Registrarse
+                      </Button>
                     </>
                   )}
                 </div>
@@ -75,7 +98,6 @@ export default function Header() {
         {/* Desktop navigation */}
         <nav className="hidden md:flex justify-center items-center gap-6">
           
-         
         </nav>
 
         {/* Auth section - desktop */}
@@ -105,6 +127,8 @@ export default function Header() {
             </DropdownMenu>
           ) : (
             <>
+              
+              
             </>
           )}
         </div>

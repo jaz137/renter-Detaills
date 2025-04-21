@@ -23,13 +23,13 @@ export default function RenterDetails() {
   const [renterDetails, setRenterDetails] = useState<RenterDetailsType | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isAuthenticated, setIsAuthenticated] = useState(true) // For demo purposes, set to true
+  const [isAuthenticated, setIsAuthenticated] = useState(true) 
   const { toast } = useToast()
 
   useEffect(() => {
     const loadRenterDetails = async () => {
       try {
-        // Get the first available renter ID
+        
         const renterId = await getFirstRenterId()
 
         if (!renterId) {
@@ -121,10 +121,10 @@ export default function RenterDetails() {
 
   return (
     <ToastProvider>
-      <div className="container mx-auto py-8 px-4 max-w-4xl">
+      <div className="container mx-auto py-8 px-4 max-w-6xl">
         <h1 className="text-2xl font-bold mb-6">Detalles del Arrendatario</h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Profile Card - Estilo Carlos Mendoza */}
           <div className="md:col-span-1">
             <Card className="border rounded-lg overflow-hidden">

@@ -16,7 +16,7 @@ interface ReportProfileDialogProps {
   children?: ReactNode
 }
 
-// Opciones de reporte
+
 const reportReasons = [
   { id: "fake_profile", label: "Perfil falso o suplantación de identidad" },
   { id: "inappropriate_content", label: "Contenido inapropiado" },
@@ -33,7 +33,7 @@ export default function ReportProfileDialog({ renterId, renterName }: ReportProf
   const { toast } = useToast()
 
   const handleSubmit = async () => {
-    // Validación
+    
     if (!selectedReason) {
       toast({
         title: "Error",

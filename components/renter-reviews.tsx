@@ -21,8 +21,7 @@ export default function RenterReviews({ reviews }: RenterReviewsProps) {
   const [sortOrder, setSortOrder] = useState<SortOrder>("newest")
   const [ratingFilter, setRatingFilter] = useState<RatingFilter>("all")
   const [showFilters, setShowFilters] = useState(false)
-  const initialReviewsCount = 2 // Número inicial de reseñas a mostrar
-
+  const initialReviewsCount = 2 
   
   const filteredAndSortedReviews = useMemo(() => {
     

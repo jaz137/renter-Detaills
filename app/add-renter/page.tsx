@@ -46,7 +46,7 @@ export default function AddRenter() {
       const renterData = {
         ...formData,
         age: formData.age ? Number.parseInt(formData.age) : null,
-        profile_picture: "/placeholder.svg?height=200&width=200", // Default placeholder
+        profile_picture: "/placeholder.svg?height=200&width=200", 
         rating: 0,
       }
 

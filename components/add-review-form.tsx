@@ -26,7 +26,7 @@ export default function AddReviewForm({ renterId, onReviewAdded }: AddReviewForm
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Validation
+    
     if (rating === 0) {
       toast({
         title: "Error",
