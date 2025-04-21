@@ -41,7 +41,7 @@ export default function WhatsAppQRDialog({ phoneNumber, renterName }: WhatsAppQR
         </DialogHeader>
         <div className="flex flex-col items-center justify-center p-4">
           <div className="bg-white p-4 rounded-lg">
-            <QRCodeSVG
+          <QRCodeSVG
               value={whatsappUrlWithMessage}
               size={200}
               bgColor={"#ffffff"}
@@ -49,6 +49,7 @@ export default function WhatsAppQRDialog({ phoneNumber, renterName }: WhatsAppQR
               level={"L"}
               includeMargin={false}
             />
+
           </div>
           <p className="mt-4 text-sm text-center text-muted-foreground">
             Escanea este código QR con tu teléfono para iniciar una conversación de WhatsApp con {renterName}
