@@ -18,12 +18,15 @@ import Link from "next/link"
 import WhatsAppQRDialog from "./whatsapp-qr-dialog"
 import ReportProfileDialog from "./report-profile-dialog"
 import VerifiedInfo from "./verified-info"
+import { useAuth } from "@/contexts/auth-context"
 
 export default function RenterDetails() {
   const [renterDetails, setRenterDetails] = useState<RenterDetailsType | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isAuthenticated, setIsAuthenticated] = useState(true) 
+  const { user, isLoading: authLoading } = useAuth()
+  const isAuthenticated = !!user
+  //const [isAuthenticated, setIsAuthenticated] = useState(true) 
   const { toast } = useToast()
 
   useEffect(() => {

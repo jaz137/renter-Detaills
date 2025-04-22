@@ -1,31 +1,35 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Lock } from "lucide-react"
+import Link from "next/link"
 
 export default function AuthCheck() {
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50 p-4">
-      <Card className="max-w-md w-full">
+      <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="bg-red-100 p-3 rounded-full">
-              <Lock className="h-6 w-6 text-red-600" />
+            <div className="bg-primary/10 p-3 rounded-full">
+              <Lock className="h-6 w-6 text-primary" />
             </div>
           </div>
           <CardTitle className="text-xl">Acceso Restringido</CardTitle>
-          <CardDescription>
-            Necesita iniciar sesión como anfitrión para ver los detalles del arrendatario.
-          </CardDescription>
+          <CardDescription>Necesita iniciar sesión para ver los detalles del arrendatario</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground text-center">
-            Esta información es confidencial y solo está disponible para anfitriones registrados en la plataforma.
+            Esta información está disponible solo para usuarios registrados. Por favor inicie sesión o cree una cuenta
+            para continuar.
           </p>
         </CardContent>
-        <CardFooter className="flex flex-col gap-2">
-          <Button className="w-full">Iniciar Sesión</Button>
-          <Button variant="outline" className="w-full">
-            Registrarse como Anfitrión
+        <CardFooter className="flex flex-col space-y-2">
+          <Button className="w-full" asChild>
+            <Link href="/login">Iniciar Sesión</Link>
+          </Button>
+          <Button variant="outline" className="w-full" asChild>
+            <Link href="/register">Crear Cuenta</Link>
           </Button>
         </CardFooter>
       </Card>

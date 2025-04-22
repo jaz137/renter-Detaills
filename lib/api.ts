@@ -1,4 +1,4 @@
-import { supabase } from "./supabase"
+import { supabase } from "./supabase-singleton"
 import type { RenterDetailsType, Review, NewReview, ReportData, Report } from "./types"
 
 
@@ -36,7 +36,7 @@ export async function getFirstRenterId(): Promise<string | null> {
 
 
 export async function fetchRenterDetails(renterId: string): Promise<RenterDetailsType> {
-  
+ 
   const { data: renter, error: renterError } = await supabase.from("renters").select("*").eq("id", renterId).single()
 
   if (renterError) throw new Error(renterError.message)
@@ -61,7 +61,7 @@ export async function fetchRenterDetails(renterId: string): Promise<RenterDetail
 
   
   const processedReviews = reviews.map((review) => {
-   
+    
     if (!review.created_at) {
       review.created_at = new Date().toISOString()
     }
@@ -99,12 +99,49 @@ export async function fetchRenterDetails(renterId: string): Promise<RenterDetail
 }
 
 
-export async function addReview(renterId: string, reviewData: { rating: number; comment: string }): Promise<Review> {
-  
-  const hostData = {
-    host_id: "123e4567-e89b-12d3-a456-426614174000", 
-    host_name: "Miguel Torres",
-    host_picture: "/placeholder.svg?height=40&width=40",
+export async function addReview(
+  renterId: string,
+  reviewData: { rating: number; comment: string },
+  hostData?: { host_id: string; host_name: string; host_picture: string },
+): Promise<Review> {
+ 
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+
+  if (authError) {
+    console.error("Auth error:", authError)
+    throw new Error("Error de autenticación: " + authError.message)
+  }
+
+  if (!user) {
+    console.error("No authenticated user found")
+    throw new Error("Usuario no autenticado")
+  }
+
+  console.log("Authenticated user:", user.id)
+
+ 
+  if (!hostData) {
+    
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single()
+
+    if (profileError && profileError.code !== "PGSQL_RELATION_DOES_NOT_EXIST") {
+      console.error("Profile error:", profileError)
+      throw new Error(profileError.message)
+    }
+
+    
+    hostData = {
+      host_id: user.id,
+      host_name: profile?.full_name || user.email?.split("@")[0] || "Usuario",
+      host_picture: profile?.avatar_url || "/placeholder.svg?height=40&width=40",
+    }
   }
 
   const newReview: NewReview = {
@@ -114,11 +151,16 @@ export async function addReview(renterId: string, reviewData: { rating: number; 
     comment: reviewData.comment,
   }
 
+  console.log("Submitting review:", newReview)
+
   const { data, error } = await supabase.from("reviews").insert(newReview).select().single()
 
-  if (error) throw new Error(error.message)
+  if (error) {
+    console.error("Error inserting review:", error)
+    throw new Error(error.message)
+  }
 
- 
+  
   await updateRenterRating(renterId)
 
   return {
@@ -150,13 +192,24 @@ async function updateRenterRating(renterId: string) {
 
 export async function reportRenter(renterId: string, reportData: ReportData): Promise<Report> {
   
-  const reporterData = {
-    reporter_id: "123e4567-e89b-12d3-a456-426614174000", 
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+
+  if (authError) {
+    console.error("Auth error:", authError)
+    throw new Error("Error de autenticación: " + authError.message)
+  }
+
+  if (!user) {
+    console.error("No authenticated user found")
+    throw new Error("Usuario no autenticado")
   }
 
   const newReport = {
     renter_id: renterId,
-    ...reporterData,
+    reporter_id: user.id,
     reason: reportData.reason,
     additional_info: reportData.additionalInfo,
     status: "pending" as const,

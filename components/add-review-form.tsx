@@ -2,15 +2,17 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { StarRating } from "@/components/star-rating"
-import { addReview } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
-import { Loader2 } from "lucide-react"
+import { Loader2, LogIn } from "lucide-react"
 import type { Review } from "@/lib/types"
+import { useAuth } from "@/contexts/auth-context"
+import Link from "next/link"
+import { createClient } from "@/lib/supabase-browser"
 
 interface AddReviewFormProps {
   renterId: string
@@ -21,12 +23,47 @@ export default function AddReviewForm({ renterId, onReviewAdded }: AddReviewForm
   const [rating, setRating] = useState(0)
   const [comment, setComment] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+  const [currentUser, setCurrentUser] = useState<any>(null)
   const { toast } = useToast()
+  const { user, isLoading: authLoading } = useAuth()
+
+  // Check authentication directly
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const supabase = createClient()
+        const { data } = await supabase.auth.getSession()
+
+        if (data.session) {
+          setIsAuthenticated(true)
+          setCurrentUser(data.session.user)
+        } else {
+          setIsAuthenticated(false)
+        }
+      } catch (error) {
+        console.error("Error checking auth:", error)
+        setIsAuthenticated(false)
+      }
+    }
+
+    checkAuth()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    
+    // Check if user is authenticated
+    if (!isAuthenticated || !currentUser) {
+      toast({
+        title: "Autenticación requerida",
+        description: "Debe iniciar sesión para dejar una reseña",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Validation
     if (rating === 0) {
       toast({
         title: "Error",
@@ -48,21 +85,56 @@ export default function AddReviewForm({ renterId, onReviewAdded }: AddReviewForm
     setIsSubmitting(true)
 
     try {
-      
-      const newReview = await addReview(renterId, {
-        rating,
-        comment,
-      })
+      const supabase = createClient()
 
-      
-      if (!newReview.created_at) {
-        newReview.created_at = new Date().toISOString()
+      // Get user profile info
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("full_name, avatar_url")
+        .eq("id", currentUser.id)
+        .single()
+
+      // Generate a UUID for the review
+      const id = crypto.randomUUID()
+
+      // Prepare the review data
+      const newReview = {
+        id,
+        renter_id: renterId,
+        host_id: currentUser.id,
+        host_name: profile?.full_name || currentUser.email?.split("@")[0] || "Usuario",
+        host_picture: profile?.avatar_url || "/placeholder.svg?height=40&width=40",
+        rating: rating,
+        comment: comment,
+        created_at: new Date().toISOString(),
       }
 
-      
-      onReviewAdded(newReview)
+      // Insert the review
+      const { data, error } = await supabase.from("reviews").insert(newReview).select().single()
 
-     
+      if (error) {
+        console.error("Insert error:", error)
+        throw error
+      }
+
+      if (!data) {
+        throw new Error("No se recibieron datos después de insertar la reseña")
+      }
+
+      // Format the review for the frontend
+      const formattedReview: Review = {
+        ...data,
+        date: new Date(data.created_at).toLocaleDateString("es-ES", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }),
+      }
+
+      // Update the UI with the new review
+      onReviewAdded(formattedReview)
+
+      // Reset the form
       setRating(0)
       setComment("")
 
@@ -70,16 +142,52 @@ export default function AddReviewForm({ renterId, onReviewAdded }: AddReviewForm
         title: "Reseña enviada",
         description: "Su reseña ha sido publicada exitosamente",
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error submitting review:", error)
       toast({
         title: "Error",
-        description: "No se pudo enviar la reseña. Intente nuevamente.",
+        description: error.message || "No se pudo enviar la reseña. Intente nuevamente.",
         variant: "destructive",
       })
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // If auth is still loading, show a loading state
+  if (isAuthenticated === null) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Cargando...</CardTitle>
+        </CardHeader>
+        <CardContent className="flex justify-center py-6">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // If user is not authenticated, show login prompt
+  if (isAuthenticated === false) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Agregar una reseña</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="text-center py-4">
+            <LogIn className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
+            <p className="text-muted-foreground mb-4">
+              Debe iniciar sesión para dejar una reseña sobre este arrendatario.
+            </p>
+            <Button asChild className="w-full">
+              <Link href="/login">Iniciar Sesión</Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
